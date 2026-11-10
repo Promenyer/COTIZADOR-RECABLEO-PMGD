@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotizador Recableo · Novafar</title>
+<style>
+:root{
+  --bg:#f5f6f8;--card:#fff;--ink:#1b1f24;--mut:#667085;--line:#e3e6ea;
+  --acc:#0b6b5c;--acc2:#e9f5f2;--warn:#b54708;--bad:#b42318;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#111417;--card:#1a1e22;--ink:#e8eaed;--mut:#9aa3ad;--line:#2b3137;--acc:#3fc1a5;--acc2:#16302b;--warn:#f5a25d;--bad:#f97066;}
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:16px 16px 8px;max-width:1100px;margin:auto}
+header h1{margin:0;font-size:20px}
+header p{margin:2px 0 0;color:var(--mut);font-size:13px}
+.wrap{max-width:1100px;margin:auto;padding:8px 16px 120px;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:900px){.wrap{grid-template-columns:1.35fr 1fr;align-items:start}.side{position:sticky;top:12px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h2{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 small{font-weight:400;color:var(--mut);font-size:12px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut)}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 9px;width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:-1px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+td.n,th.n{text-align:right;white-space:nowrap}
+td input{padding:6px 7px}
+.cr{display:grid;grid-template-columns:2fr 70px 120px auto;gap:8px;align-items:end;padding:8px 0;border-bottom:1px solid var(--line)}
+.cs{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding-bottom:6px;font-size:14px;white-space:nowrap}
+@media(max-width:620px){.cr{grid-template-columns:70px 1fr auto}.cr .cn{grid-column:1/-1}}
+.opt{display:grid;grid-template-columns:auto 1fr 90px 110px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.opt:last-child{border:0}
+.opt .nm{font-size:14px}
+.opt .nm small{display:block;color:var(--mut);font-size:11px}
+@media(max-width:520px){.opt{grid-template-columns:auto 1fr 1fr}.opt .nm{grid-column:2/-1}.opt label:first-of-type{grid-column:2}}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc)}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.kpi div{background:var(--acc2);border-radius:10px;padding:10px}
+.kpi b{display:block;font-size:20px}
+.kpi span{font-size:11px;color:var(--mut)}
+.row{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-bottom:1px dashed var(--line)}
+.row.t{font-weight:700;font-size:16px;border-bottom:0;padding-top:8px}
+.row.s{color:var(--mut);font-size:13px}
+.big{font-size:26px;font-weight:800;color:var(--acc)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer}
+button.p{background:var(--acc);border-color:var(--acc);color:#fff}
+button.sm{padding:4px 8px;font-size:12px}
+.note{font-size:12px;color:var(--mut);margin-top:8px}
+.warn{color:var(--warn)}
+.saved{list-style:none;margin:0;padding:0}
+.saved li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.saved li span{overflow:hidden;text-overflow:ellipsis}
+.bhv{color:var(--acc);font-size:12px;font-weight:600}
+.row small{color:var(--mut);font-weight:400}
+.cp{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+.cp .top{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.cp .res{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-top:8px;font-size:13px}
+.cp .res span:nth-child(even){text-align:right;font-weight:600}
+.cp .neg{color:var(--bad)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:.2s;pointer-events:none}
+.toast.on{opacity:1}
+.mbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+.mbar b{font-size:18px;color:var(--acc)}
+@media(min-width:900px){.mbar{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cotizador de Recableo</h1>
+  <p>Novafar · cálculo interno de mano de obra (recableo de strings / trackers). Todos los valores en CLP y editables.</p>
+</header>
+
+<div class="wrap">
+<main style="display:grid;gap:14px">
+
+  <section class="card">
+    <h2>Proyecto</h2>
+    <div class="grid">
+      <label>Nombre / obra<input id="nombre" placeholder="Ej: PMGD Chacabuco"></label>
+      <label>Mandante<input id="cliente" placeholder="Ej: EPC / dueño"></label>
+      <label>Fecha<input id="fecha" type="date"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Alcance y rendimiento</h2>
+    <div class="grid">
+      <label>Metros de cable a instalar<input id="metros" type="number" min="0" step="10" value="6000"></label>
+      <label>Rendimiento (m/día por cuadrilla)<input id="rend" type="number" min="1" step="10" value="400"></label>
+      <label>N° de cuadrillas<input id="ncuad" type="number" min="1" step="1" value="1"></label>
+      <label>Factor dificultad<select id="dif">
+        <option value="1">Normal (×1,00)</option>
+        <option value="1.15">Media (×1,15)</option>
+        <option value="1.3">Alta (×1,30)</option>
+        <option value="1.5">Muy alta (×1,50)</option>
+      </select></label>
+      <label>Días trabajados (corridos)<input id="dtrab" type="number" min="0" step="1" placeholder="auto"></label>
+    </div>
+    <p class="note">Calculado: <b id="dAuto">–</b> días corridos (metros × dificultad ÷ (rendimiento × cuadrillas)). Si escribes un número en “Días trabajados”, se usa ese; déjalo vacío para usar el calculado.</p>
+  </section>
+
+  <section class="card">
+    <h2>Cuadrilla <small>por cuadrilla · costo empresa por día</small></h2>
+    <div id="crew"></div>
+    <div class="btns"><button class="sm" id="addCrew">+ Agregar cargo</button></div>
+    <p class="note">Las cantidades son por cuadrilla y se multiplican por el N° de cuadrillas. El personal que va una sola vez para toda la obra (supervisor, prevencionista) va en “Personal fijo”.</p>
+    <div class="grid" style="margin-top:8px">
+      <label>Personal fijo (cant.)<input id="fijoCant" type="number" min="0" step="1" value="0"></label>
+      <label>$/día personal fijo<input id="fijoVal" type="number" min="0" step="1000" value="80000"></label>
+    </div>
+    <div style="margin-top:12px;background:var(--acc2);border-radius:10px;padding:10px 12px">
+      <div class="row" style="border:0;padding:2px 0"><span>Costo diario personal (líquido)</span><span id="pdL">–</span></div>
+      <div class="row" style="border:0;padding:2px 0"><span>Retención BH <span id="pdR"></span></span><span id="pdB">–</span></div>
+      <div class="row t" style="padding-top:4px"><span>Costo diario personal con BH</span><span id="pdT">–</span></div>
+      <div class="row s" style="border:0;padding:2px 0"><span>Personal fijo c/u con BH</span><span id="pdF">–</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Gastos de terreno <small>por persona por día</small></h2>
+    <div class="grid">
+      <label>Alimentación ($/pers/día)<input id="alim" type="number" min="0" step="500" value="12000"><small class="bhv" id="b_alim"></small></label>
+      <label>Alojamiento ($/pers/día)<input id="aloj" type="number" min="0" step="1000" value="0"><small class="bhv" id="b_aloj"></small></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Vehículos <small>valores diarios por cada vehículo</small></h2>
+    <div class="grid">
+      <label>Cantidad de vehículos<input id="nveh" type="number" min="0" step="1" value="1"></label>
+      <label>Arriendo ($/día c/u)<input id="veh" type="number" min="0" step="1000" value="45000"><small class="bhv" id="b_veh"></small></label>
+      <label>Combustible ($/día c/u)<input id="comb" type="number" min="0" step="1000" value="15000"><small class="bhv" id="b_comb"></small></label>
+      <label>TAG ($/día c/u)<input id="tag" type="number" min="0" step="500" value="5000"><small class="bhv" id="b_tag"></small></label>
+    </div>
+    <p class="note">Vehículos por día: <b id="vDia">–</b> · con BH: <b id="vDiaB">–</b></p>
+  </section>
+
+  <section class="card">
+    <h2>Exámenes preocupacionales</h2>
+    <div class="grid">
+      <label>Valor por persona ($)<input id="exam" type="number" min="0" step="1000" value="0"><small class="bhv" id="b_exam"></small></label>
+      <label>N° de personas a examinar<input id="nexam" type="number" min="0" step="1" placeholder="auto"></label>
+    </div>
+    <p class="note">Si dejas vacío el N° de personas, se usa el total de la obra (<b id="eAuto">–</b>).</p>
+  </section>
+
+  <section class="card">
+    <h2>Boleta de honorarios <small>retención SII</small></h2>
+    <div class="grid">
+      <label>Retención vigente (%)<input id="ret" type="number" min="0" max="50" step="0.25" value="15.25"></label>
+      <label>Forma de cálculo<select id="retM">
+        <option value="b">Bruto para que reciban el monto líquido (÷ (1 − %))</option>
+        <option value="s">Sumar el % directo (× (1 + %))</option>
+      </select></label>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:14px">
+      <label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px"><input type="checkbox" id="rMO" checked> Sueldos diarios</label>
+      <label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px"><input type="checkbox" id="rAl" checked> Alimentación</label>
+      <label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px"><input type="checkbox" id="rAj" checked> Alojamiento</label>
+      <label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px"><input type="checkbox" id="rVe" checked> Vehículos (arriendo, combustible, TAG)</label>
+      <label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px"><input type="checkbox" id="rEx" checked> Exámenes preocupacionales</label>
+    </div>
+    <p class="note">Tasa 2026: 15,25% (SII). Los montos que ingresas arriba se toman como lo que recibe el trabajador. “Bruto” calcula cuánto debe decir la boleta para que le llegue ese líquido (ej: $60.000 líquido → $70.796 bruto). “Sumar directo” da $69.150, y el trabajador recibe $58.605.</p>
+  </section>
+
+  <section class="card">
+    <h2>Ítems aparte <small>se suman solo si están marcados</small></h2>
+    <div id="opts"></div>
+  </section>
+
+  <section class="card">
+    <h2>Recargos y margen</h2>
+    <div class="grid">
+      <label>Imprevistos (% sobre costo directo)<input id="imp" type="number" min="0" step="1" value="5"><b id="impP" style="color:var(--ink);font-size:15px">–</b></label>
+      <label>Margen (% sobre precio de venta)<input id="mg" type="number" min="0" max="90" step="1" value="25"><b id="mgP" style="color:var(--ink);font-size:15px">–</b></label>
+    </div>
+    <p class="note">Precio neto = (costo directo + imprevistos) ÷ (1 − margen). Un margen de 25% equivale a un recargo de 33,3% sobre costo.</p>
+  </section>
+
+</main>
+
+<aside class="side" style="display:grid;gap:14px">
+  <section class="card">
+    <h2>Resultado</h2>
+    <div class="kpi">
+      <div><b id="kDias">–</b><span>días trabajados</span></div>
+      <div><b id="kSem">–</b><span>semanas corridas</span></div>
+      <div><b id="kPers">–</b><span>personas en obra</span></div>
+      <div><b id="kHH">–</b><span>HH (9 h/día)</span></div>
+    </div>
+    <div id="det"></div>
+    <div style="margin-top:12px">
+      <div class="row s"><span>Precio por metro (neto)</span><span id="pm">–</span></div>
+      <div class="row s"><span>Costo por metro</span><span id="cm">–</span></div>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--mut)">PRECIO NETO SUGERIDO</div>
+    <div class="big" id="precio">–</div>
+    <div class="row s"><span>IVA 19%</span><span id="iva">–</span></div>
+    <div class="row"><span>Total con IVA</span><b id="total">–</b></div>
+    <div class="row s"><span>Utilidad estimada</span><span id="util">–</span></div>
+    <p class="note warn" id="aviso"></p>
+    <div class="btns">
+      <button class="p" id="copiar">Copiar resumen</button>
+      <button id="guardar">Guardar cotización</button>
+      <button id="nuevo">Nueva</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Comparar precio por metro <small>ingresa el valor neto</small></h2>
+    <div id="cmp"></div>
+    <div class="btns"><button class="sm" id="addCmp">+ Agregar opción</button></div>
+    <p class="note">IVA 19%. El margen y la utilidad se comparan contra el costo total de esta cotización (<b id="cmpCosto">–</b>/m).</p>
+  </section>
+
+  <section class="card">
+    <h2>Guardadas <small>en este navegador</small></h2>
+    <ul class="saved" id="lista"><li><span style="color:var(--mut)">Aún no hay cotizaciones guardadas.</span></li></ul>
+    <div class="btns">
+      <button class="sm" id="guardarBase">Guardar valores como predeterminados</button>
+    </div>
+    <p class="note">Se guardan solo en este dispositivo. Para pasar una cotización a otro equipo, usa “Copiar resumen”.</p>
+  </section>
+</aside>
+</div>
+
+<div class="mbar"><span style="font-size:12px;color:var(--mut)">Precio neto</span><b id="mPrecio">–</b></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const clp=n=>isFinite(n)?'$'+Math.round(n).toLocaleString('es-CL'):'–';
+const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:0};
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
+
+const CREW0=[
+  {c:'Jefe de cuadrilla / técnico eléctrico',q:1,v:75000},
+  {c:'Técnico electricista',q:2,v:60000},
+  {c:'Ayudante',q:2,v:40000},
+];
+const OPTS0=[
+  {k:'sum',n:'Suministro de cable',d:'$ por metro (si lo pone Novafar)',u:'m',q:6000,v:0,on:false,link:'metros'},
+  {k:'con',n:'Conectores MC4',d:'$ por par',u:'par',q:0,v:3500,on:false},
+  {k:'can',n:'Canalización / amarras / sujeción',d:'$ por metro',u:'m',q:0,v:0,on:false,link:'metros'},
+  {k:'pru',n:'Pruebas finales (Voc, aislamiento, IV)',d:'$ por string',u:'string',q:0,v:8000,on:false},
+  {k:'rot',n:'Rotulación tipo bandera',d:'$ por unidad',u:'unid',q:0,v:600,on:false},
+  {k:'ret',n:'Retiro de cable dañado / residuos',d:'global',u:'gl',q:1,v:0,on:false},
+];
+
+let crew=JSON.parse(JSON.stringify(CREW0));
+let cmp=[{n:'Opción A',v:0}];
+let opts=JSON.parse(JSON.stringify(OPTS0));
+const CHK=['rMO','rAl','rAj','rVe','rEx'];
+const FIELDS=['ret','retM','nombre','cliente','fecha','metros','rend','ncuad','dif','dtrab','fijoCant','fijoVal','alim','aloj','nveh','veh','comb','tag','exam','nexam','imp','mg'];
+
+function renderCrew(){
+  $('crew').innerHTML=crew.map((r,i)=>`<div class="cr">
+    <label class="cn">Cargo<input data-i="${i}" data-f="c" value="${r.c.replace(/"/g,'&quot;')}"></label>
+    <label>Cant.<input data-i="${i}" data-f="q" type="number" min="0" step="1" value="${r.q}"></label>
+    <label>$/día c/u<input data-i="${i}" data-f="v" type="number" min="0" step="1000" value="${r.v}"></label>
+    <div class="cs"><span style="text-align:right;line-height:1.2"><span id="cs${i}"></span><br><small style="color:var(--mut)">c/u con BH: <b id="cb${i}"></b></small></span><button class="sm" data-del="${i}" title="Quitar">✕</button></div></div>`).join('');
+}
+function renderCmp(){
+  $('cmp').innerHTML=cmp.map((c,i)=>`<div class="cp">
+    <div class="top">
+      <label>Nombre<input data-c="${i}" data-f="n" value="${String(c.n).replace(/"/g,'&quot;')}"></label>
+      <label>Neto $/m<input data-c="${i}" data-f="v" type="number" min="0" step="10" value="${c.v||''}" placeholder="0"></label>
+      <button class="sm" data-cdel="${i}" title="Quitar" style="margin-bottom:6px">✕</button>
+    </div>
+    <div class="res" id="cr${i}"></div></div>`).join('');
+}
+function calcCmp(){
+  if(!last)return;
+  const m=last.m,cpm=m?last.costo/m:0;
+  $('cmpCosto').textContent=clp(cpm);
+  cmp.forEach((c,i)=>{const el=$('cr'+i);if(!el)return;const v=+c.v||0;
+    if(!v){el.innerHTML='<span style="color:var(--mut)">Ingresa un valor neto por metro</span><span></span>';return}
+    const tot=v*m,ut=tot-last.costo,mg=tot?ut/tot*100:0,cls=ut<0?' class="neg"':'';
+    el.innerHTML=`<span>IVA incluido por metro</span><span>${clp(v*1.19)} /m</span>
+      <span>Total neto (${m.toLocaleString('es-CL')} m)</span><span>${clp(tot)}</span>
+      <span>Total con IVA</span><span>${clp(tot*1.19)}</span>
+      <span>Utilidad</span><span${cls}>${clp(ut)}</span>
+      <span>Margen real</span><span${cls}>${mg.toFixed(1).replace('.',',')}%</span>
+      <span>vs. precio sugerido</span><span${cls}>${(v-last.precio/m>=0?'+':'')}${clp(v-last.precio/m).replace('$-','-$')} /m</span>`});
+}
+function renderOpts(){
+  $('opts').innerHTML=opts.map((o,i)=>`<div class="opt">
+    <input type="checkbox" data-o="${i}" data-f="on" ${o.on?'checked':''}>
+    <div class="nm">${o.n}<small>${o.d}</small></div>
+    <label>Cant. (${o.u})<input type="number" min="0" data-o="${i}" data-f="q" value="${o.q}"></label>
+    <label>$ unitario<input type="number" min="0" step="100" data-o="${i}" data-f="v" value="${o.v}"></label>
+  </div>`).join('');
+}
+
+$('crew').addEventListener('input',e=>{const t=e.target,i=t.dataset.i;if(i==null)return;crew[i][t.dataset.f]=t.dataset.f==='c'?t.value:(parseFloat(t.value)||0);calc()});
+$('crew').addEventListener('click',e=>{const d=e.target.dataset.del;if(d==null)return;crew.splice(d,1);renderCrew();calc()});
+$('cmp').addEventListener('input',e=>{const t=e.target,i=t.dataset.c;if(i==null)return;cmp[i][t.dataset.f]=t.dataset.f==='n'?t.value:(parseFloat(t.value)||0);calcCmp()});
+$('cmp').addEventListener('click',e=>{const d=e.target.dataset.cdel;if(d==null)return;cmp.splice(d,1);renderCmp();calcCmp()});
+$('addCmp').onclick=()=>{cmp.push({n:'Opción '+String.fromCharCode(65+cmp.length%26),v:0});renderCmp();calcCmp()};
+$('addCrew').onclick=()=>{crew.push({c:'Nuevo cargo',q:1,v:40000});renderCrew();calc()};
+$('opts').addEventListener('input',e=>{const t=e.target,i=t.dataset.o;if(i==null)return;opts[i][t.dataset.f]=t.type==='checkbox'?t.checked:(parseFloat(t.value)||0);calc()});
+document.querySelectorAll('main input, main select').forEach(el=>{if(!el.dataset.i&&!el.dataset.o)el.addEventListener('input',calc)});
+$('metros').addEventListener('input',()=>{opts.forEach((o,i)=>{if(o.link==='metros'){o.q=num('metros');const el=document.querySelector(`[data-o="${i}"][data-f="q"]`);if(el)el.value=o.q}})});
+
+let last=null;
+function calc(){
+  const m=num('metros'),rend=Math.max(1,num('rend')),nc=Math.max(1,num('ncuad')),dif=parseFloat($('dif').value)||1;
+  const dTrab=m>0?Math.ceil(m*dif/(rend*nc)):0;
+  $('dAuto').textContent=dTrab;
+  const dias=$('dtrab').value!==''?Math.max(0,num('dtrab')):dTrab;
+  const dsem=7;
+
+  const rt=Math.min(50,Math.max(0,num('ret')))/100;
+  const up=x=>$('retM').value==='b'?x/(1-rt)-x:x*rt;
+  const bh=x=>x+up(x);
+  let crewDia=0,persCuad=0;
+  crew.forEach((r,i)=>{const s=r.q*r.v;crewDia+=s;persCuad+=r.q;const el=$('cs'+i);if(el)el.textContent=clp(s);const eb=$('cb'+i);if(eb)eb.textContent=clp(bh(r.v))});
+  const fijoN=num('fijoCant');
+  const pers=persCuad*nc+fijoN;
+  const moDia=crewDia*nc+fijoN*num('fijoVal');
+  $('pdL').textContent=clp(moDia);$('pdR').textContent=(rt*100).toLocaleString('es-CL')+'%';
+  $('pdB').textContent=clp(up(moDia));$('pdT').textContent=clp(bh(moDia));$('pdF').textContent=clp(bh(num('fijoVal')));
+  const manoObra=moDia*dias;
+
+  const alim=num('alim')*pers*dias;
+  const aloj=num('aloj')*pers*dias;
+  const vDia=(num('veh')+num('comb')+num('tag'))*num('nveh');
+  $('vDia').textContent=clp(vDia);
+  const veh=vDia*dias;
+  $('eAuto').textContent=pers+' personas';
+  const nEx=$('nexam').value!==''?num('nexam'):pers;
+  const exam=num('exam')*nEx;
+  const W=(id,x)=>$(id).checked?x+up(x):x;
+  const tag=(id)=>$(id).checked?'con BH':'sin BH';
+  const sb=(el,id,x)=>{$(el).textContent=(tag(id)==='con BH'?'Con BH: ':'Sin BH: ')+clp(W(id,x))};
+  sb('b_alim','rAl',num('alim'));sb('b_aloj','rAj',num('aloj'));
+  sb('b_veh','rVe',num('veh'));sb('b_comb','rVe',num('comb'));sb('b_tag','rVe',num('tag'));sb('b_exam','rEx',num('exam'));
+  $('vDiaB').textContent=clp(W('rVe',vDia));
+  const moB=W('rMO',manoObra),alB=W('rAl',alim),ajB=W('rAj',aloj),veB=W('rVe',veh),exB=W('rEx',exam);
+  const ret=(moB-manoObra)+(alB-alim)+(ajB-aloj)+(veB-veh)+(exB-exam);
+  const terreno=alB+ajB+veB+exB;
+
+  let extras=0;const extrasDet=[];
+  opts.forEach(o=>{if(o.on){const s=o.q*o.v;extras+=s;extrasDet.push([o.n,s])}});
+
+  const directo=moB+terreno+extras;
+  const imp=directo*num('imp')/100;
+  const gg=0;
+  const costo=directo+imp;
+  const mg=Math.min(90,Math.max(0,num('mg')))/100;
+  const precio=costo/(1-mg);
+  const iva=precio*0.19;
+
+  $('kDias').textContent=dias;
+  $('kSem').textContent=(dias/dsem).toFixed(1).replace('.',',');
+  $('kPers').textContent=pers;
+  $('kHH').textContent=(pers*dias*9).toLocaleString('es-CL');
+
+  const rows=[
+    [`Mano de obra <small>${tag('rMO')}</small>`,moB],
+    [`Alimentación <small>${tag('rAl')}</small>`,alB],
+    ...(aloj?[[`Alojamiento <small>${tag('rAj')}</small>`,ajB]]:[]),
+    [`Vehículos <small>${tag('rVe')}</small>`,veB],
+    ...(exam?[[`Exámenes preocupacionales <small>${tag('rEx')}</small>`,exB]]:[]),
+    ...extrasDet,
+  ];
+  $('det').innerHTML=rows.map(([a,b])=>`<div class="row"><span>${a}</span><span>${clp(b)}</span></div>`).join('')+
+    `<div class="row"><span><b>Costo directo</b></span><b>${clp(directo)}</b></div>
+     <div class="row s"><span>↳ incluye retención BH ${(rt*100).toLocaleString('es-CL')}%</span><span>${clp(ret)}</span></div>
+     <div class="row s"><span>Imprevistos ${num('imp')}%</span><span>${clp(imp)}</span></div>
+     <div class="row t"><span>Costo total</span><span>${clp(costo)}</span></div>`;
+  $('precio').textContent=clp(precio);$('mPrecio').textContent=clp(precio);
+  $('iva').textContent=clp(iva);$('total').textContent=clp(precio+iva);
+  $('util').textContent=clp(precio-costo);
+  $('pm').textContent=m?clp(precio/m)+' /m':'–';
+  $('cm').textContent=m?clp(costo/m)+' /m':'–';
+
+  const av=[];
+  if(!crew.length)av.push('No hay cargos en la cuadrilla.');
+  if(m&&rend<100)av.push('Rendimiento muy bajo, revisa el valor.');
+  if(mg>=0.5)av.push('Margen sobre 50%: revisa si es intencional.');
+  $('aviso').textContent=av.join(' ');
+
+  $('impP').textContent=clp(imp);$('mgP').textContent=clp(precio-costo);
+  last={m,dias,dsem,pers,manoObra:moB,alim:alB,aloj:ajB,veh:veB,exam:exB,ret,rt,extrasDet,directo,imp,gg,costo,precio,iva,mg};
+  calcCmp();
+}
+
+function snapshot(){const f={};FIELDS.forEach(k=>f[k]=$(k).value);CHK.forEach(k=>f[k]=$(k).checked);return{f,crew,opts,cmp}}
+function load(s){if(!s)return;FIELDS.forEach(k=>{if(s.f&&s.f[k]!=null)$(k).value=s.f[k]});CHK.forEach(k=>{if(s.f&&s.f[k]!=null)$(k).checked=s.f[k]});if(s.crew)crew=JSON.parse(JSON.stringify(s.crew));if(s.cmp)cmp=JSON.parse(JSON.stringify(s.cmp));renderCmp();if(s.opts)opts=OPTS0.map(o=>Object.assign({},o,(s.opts.find(x=>x.k===o.k)||{})));renderCrew();renderOpts();calc()}
+
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
+
+$('copiar').onclick=async()=>{
+  const L=last;if(!L)return;
+  const t=[
+    `COTIZACIÓN INTERNA – RECABLEO`,
+    `Obra: ${$('nombre').value||'-'} | Mandante: ${$('cliente').value||'-'} | Fecha: ${$('fecha').value||'-'}`,
+    `Alcance: ${L.m.toLocaleString('es-CL')} m | ${num('ncuad')} cuadrilla(s) | ${L.pers} personas | ${L.dias} días corridos (~${(L.dias/7).toFixed(1)} semanas)`,
+    ``,
+    `(BH ${(L.rt*100).toLocaleString("es-CL")}% incluida donde corresponde)`,
+    `Mano de obra: ${clp(L.manoObra)}`,
+    `Alimentación: ${clp(L.alim)}`,
+    ...(L.aloj?[`Alojamiento: ${clp(L.aloj)}`]:[]),
+    `Vehículos (arriendo, combustible, TAG): ${clp(L.veh)}`,
+    ...(L.exam?[`Exámenes preocupacionales: ${clp(L.exam)}`]:[]),
+    `Total retención BH incluida: ${clp(L.ret)}`,
+    ...L.extrasDet.map(([a,b])=>`${a}: ${clp(b)}`),
+    `Costo directo: ${clp(L.directo)}`,
+    `Imprevistos ${num('imp')}%: ${clp(L.imp)}`,
+    `COSTO TOTAL: ${clp(L.costo)}`,
+    `Margen ${Math.round(L.mg*100)}% → PRECIO NETO: ${clp(L.precio)}`,
+    `IVA: ${clp(L.iva)} | TOTAL: ${clp(L.precio+L.iva)}`,
+    `Precio por metro: ${L.m?clp(L.precio/L.m):'-'} | Utilidad: ${clp(L.precio-L.costo)}`,
+    ...cmp.filter(c=>+c.v).map(c=>`${c.n}: ${clp(c.v)}/m neto | ${clp(c.v*1.19)}/m c/IVA | total neto ${clp(c.v*L.m)} | margen ${L.m?((c.v*L.m-L.costo)/(c.v*L.m)*100).toFixed(1):'-'}%`),
+  ].join('\n');
+  try{await navigator.clipboard.writeText(t);toast('Resumen copiado')}catch(e){toast('No se pudo copiar')}
+};
+
+function renderLista(){
+  const l=store.get('rc_lista')||[];
+  if(!l.length){$('lista').innerHTML='<li><span style="color:var(--mut)">Aún no hay cotizaciones guardadas.</span></li>';return}
+  $('lista').innerHTML=l.map((q,i)=>`<li><span>${q.tit}<br><small style="color:var(--mut)">${q.res}</small></span>
+    <span style="display:flex;gap:4px"><button class="sm" data-ld="${i}">Abrir</button><button class="sm" data-rm="${i}">✕</button></span></li>`).join('');
+}
+$('lista').addEventListener('click',e=>{
+  const l=store.get('rc_lista')||[];
+  if(e.target.dataset.ld!=null){load(l[e.target.dataset.ld].s);toast('Cotización cargada');scrollTo({top:0,behavior:'smooth'})}
+  if(e.target.dataset.rm!=null){l.splice(e.target.dataset.rm,1);store.set('rc_lista',l);renderLista()}
+});
+$('guardar').onclick=()=>{
+  const l=store.get('rc_lista')||[];
+  const tit=($('nombre').value||'Sin nombre')+' · '+($('fecha').value||'');
+  l.unshift({tit,res:`${last.m.toLocaleString('es-CL')} m · ${last.dias} días · ${clp(last.precio)} neto`,s:snapshot()});
+  toast(store.set('rc_lista',l.slice(0,50))?'Cotización guardada':'Este navegador no permite guardar');renderLista();
+};
+$('guardarBase').onclick=()=>{const s=snapshot();s.f.nombre='';s.f.cliente='';s.f.fecha='';toast(store.set('rc_base',s)?'Valores guardados como predeterminados':'Este navegador no permite guardar')};
+$('nuevo').onclick=()=>{const b=store.get('rc_base');if(b)load(b);else{crew=JSON.parse(JSON.stringify(CREW0));opts=JSON.parse(JSON.stringify(OPTS0));renderCrew();renderOpts()}
+  $('nombre').value='';$('cliente').value='';$('fecha').value=new Date().toISOString().slice(0,10);calc();toast('Nueva cotización')};
+
+renderCrew();renderOpts();renderCmp();
+const base=store.get('rc_base');if(base)load(base);
+if(!$('fecha').value)$('fecha').value=new Date().toISOString().slice(0,10);
+calc();renderLista();
+</script>
+</body>
+</html>
